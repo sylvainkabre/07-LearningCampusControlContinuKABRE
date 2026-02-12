@@ -1,13 +1,17 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/datatypes"
+)
 
 type Project struct {
 	ID          uint `gorm:"primaryKey"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	Name        string
-	Description string
+	Name        string `binding:"required"`
+	Description string `binding:"required"`
 	Image       string
-	Skills      []string `gorm:"type:json"`
+	Skills      datatypes.JSONSlice[string] `gorm:"type:json"`
 }
