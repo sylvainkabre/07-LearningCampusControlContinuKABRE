@@ -14,5 +14,6 @@ func ProjectRoutes(router *gin.Engine) {
 		routesGroup.GET("/:id", controllers.GetSpecificProject)
 		routesGroup.POST("/", controllers.PostProject)
 		routesGroup.PUT("/:id", controllers.PutProject)
+		routesGroup.DELETE("/:id", controllers.DeleteProject)
 	}
 }

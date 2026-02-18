@@ -119,3 +119,26 @@ func PutProject(c *gin.Context) {
 
 	c.JSON(http.StatusOK, project)
 }
+
+func DeleteProject(c *gin.Context) {
+	var project models.Project
+
+	idParam := c.Param("id")
+	id, err := strconv.Atoi(idParam)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID non valide"})
+	}
+
+	if err := config.DB.First(&project, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Projet non trouvé"})
+		return
+	}
+	//Supprimer notre projet en BDD
+
+	if err := config.DB.Delete(&project).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la suppression du projet"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Le projet a été supprimé avec succès"})
+}

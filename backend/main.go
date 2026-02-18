@@ -18,12 +18,13 @@ func main() {
 	// })
 
 	routes.ProjectRoutes(router)
+	routes.UserRoutes(router)
 
 	config.ConnectDB()
 	fmt.Println("Serveur démarré sur hhtp://localhost:8080")
 
 	// Migration des tables
-	config.DB.AutoMigrate(&models.Project{})
+	config.DB.AutoMigrate(&models.Project{}, &models.User{})
 
 	router.Run(":8000")
 	//http.ListenAndServe(":8080", nil)
