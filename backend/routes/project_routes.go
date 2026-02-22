@@ -2,12 +2,14 @@ package routes
 
 import (
 	"LearningCampusControlContinu/controllers"
+	"LearningCampusControlContinu/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
 
 func ProjectRoutes(router *gin.Engine) {
 	routesGroup := router.Group("/projects")
+	routesGroup.Use(middlewares.Authentication())
 
 	{
 		routesGroup.GET("/", controllers.GetProjects)

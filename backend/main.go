@@ -13,12 +13,11 @@ func main() {
 
 	router := gin.Default()
 
-	// router.GET("/ping", func(c *gin.Context) {
-	// 	c.JSON(200, gin.H{"message": "pong"})
-	// })
-
 	routes.ProjectRoutes(router)
 	routes.UserRoutes(router)
+	router.Use(config.SecurityMiddleware())
+	router.Use(config.CoresMiddleware())
+	router.Use(config.RateLimitMiddleware(100))
 
 	config.ConnectDB()
 	fmt.Println("Serveur démarré sur hhtp://localhost:8080")

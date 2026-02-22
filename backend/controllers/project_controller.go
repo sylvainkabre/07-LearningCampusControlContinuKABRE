@@ -5,8 +5,10 @@ import (
 	"LearningCampusControlContinu/models"
 	"errors"
 	"net/http"
+	"os"
 	"strconv"
 
+	"github.com/disintegration/imaging"
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -54,6 +56,24 @@ func PostProject(c *gin.Context) {
 		return
 	}
 
+	file, err := c.FormFile("image")
+
+	if err == nil {
+		imagePath := "uploads/" + file.Filename
+		if err := c.SaveUploadedFile(file, imagePath); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Impossible d'enregistrer l'image"})
+			return
+		}
+
+		img, _ := imaging.Open(imagePath)
+		resize := imaging.Resize(img, 800, 0, imaging.Lanczos)
+		if err := imaging.Save(resize, imagePath); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Impossible de redimensionner l'image"})
+			return
+		}
+		project.Image = imagePath
+	}
+
 	if err := config.DB.Create(&project).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la ccréation du projet"})
 		return
@@ -84,7 +104,7 @@ func PutProject(c *gin.Context) {
 	// }
 
 	var input models.ProjectUpdateInput
-	if err := c.ShouldBindJSON(&input); err != nil {
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Format de la donnée est invalide"})
 		return
 	}
@@ -99,10 +119,27 @@ func PutProject(c *gin.Context) {
 		updates["description"] = *input.Description
 	}
 
-	if input.Image != nil {
-		updates["image"] = *input.Image
-	}
+	file, err := c.FormFile("image")
 
+	if err == nil {
+		imagePath := "uploads/" + file.Filename
+		if err := c.SaveUploadedFile(file, imagePath); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Impossible d'enregistrer l'image"})
+			return
+		}
+
+		img, _ := imaging.Open(imagePath)
+		resize := imaging.Resize(img, 800, 0, imaging.Lanczos)
+		if err := imaging.Save(resize, imagePath); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Impossible de redimensionner l'image"})
+			return
+		}
+
+		if project.Image != "" {
+			_ = os.Remove(project.Image)
+		}
+		updates["image"] = imagePath
+	}
 	if input.Skills != nil {
 		updates["skills"] = datatypes.NewJSONSlice[string](*input.Skills)
 	}
