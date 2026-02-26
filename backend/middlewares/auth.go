@@ -37,9 +37,17 @@ func Authentication() gin.HandlerFunc {
 			return
 		}
 
-		userID, ok := claim["user_id"].(float64)
+		rawID, ok := claim["user_id"].(float64)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "ID utilisateur non trouvé dans le token"})
+			return
+		}
 
-		c.Set("user_id", userID)
+		userID := uint(rawID)
+
+		c.Set("userID", userID)
+
 		c.Next()
+
 	}
 }

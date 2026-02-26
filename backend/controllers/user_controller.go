@@ -86,3 +86,14 @@ func Register(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "utilisateur créé avec succès"})
 }
+
+func GetAllUsers(c *gin.Context) {
+	var users []models.User
+
+	if err := config.DB.Find(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Impossible de récupérer les utilisateurs"})
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
+}

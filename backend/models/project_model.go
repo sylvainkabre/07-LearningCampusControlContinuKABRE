@@ -14,6 +14,8 @@ type Project struct {
 	Description string `binding:"required"`
 	Image       string
 	Skills      datatypes.JSONSlice[string] `gorm:"type:json"`
+	Comments    []Comment                   `gorm:"foreignKey:ProjectID"`
+	Likes       []User                      `gorm:"many2many:project_likes;"`
 }
 
 type ProjectUpdateInput struct {

@@ -18,7 +18,7 @@ func GetProjects(c *gin.Context) {
 
 	var projects []models.Project
 
-	if err := config.DB.Find(&projects).Error; err != nil {
+	if err := config.DB.Preload("Comments").Preload("Likes").Find(&projects).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Impossible de récupérer au moins un projet"})
 		return
 	}
@@ -36,7 +36,7 @@ func GetSpecificProject(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Id invalide"})
 	}
 
-	if err := config.DB.First(&project, id).Error; err != nil {
+	if err := config.DB.Preload("Comments").Preload("Likes").First(&project, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Projet introuvable"})
 			return
@@ -178,4 +178,66 @@ func DeleteProject(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Le projet a été supprimé avec succès"})
+}
+
+func LikeProject(c *gin.Context) {
+	// 1. Parse project ID
+	projectID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID non valide"})
+		return
+	}
+
+	// 2. Load project (sans préload inutile)
+	var project models.Project
+	if err := config.DB.First(&project, projectID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Projet non trouvé"})
+		return
+	}
+
+	// 3. Récupération userID depuis le middleware
+	rawUserID, ok := c.Get("userID")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Utilisateur introuvable"})
+		return
+	}
+
+	userID, ok := rawUserID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Type user_id invalide"})
+		return
+	}
+
+	// 4. Vérifier si le like existe déjà (sans charger tous les likes)
+	var count int64
+	err = config.DB.
+		Table("project_likes").
+		Where("project_id = ? AND user_id = ?", project.ID, userID).
+		Count(&count).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur interne"})
+		return
+	}
+
+	// 5. Toggle like
+	user := models.User{ID: userID}
+
+	if count > 0 {
+		// Déjà liké → on retire
+		if err := config.DB.Model(&project).Association("Likes").Delete(&user); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la suppression du like"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "Like retiré"})
+		return
+	}
+
+	// Pas encore liké → on ajoute
+	if err := config.DB.Model(&project).Association("Likes").Append(&user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de l'ajout du like"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Like ajouté"})
 }
