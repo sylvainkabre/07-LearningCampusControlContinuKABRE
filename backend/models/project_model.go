@@ -13,7 +13,7 @@ type Project struct {
 	Name        string `binding:"required"`
 	Description string `binding:"required"`
 	Image       string
-	Skills      datatypes.JSONSlice[string] `gorm:"type:json"`
+	Skills      datatypes.JSONSlice[string] `gorm:"type:json" swaggertype:"array,string"`
 	Comments    []Comment                   `gorm:"foreignKey:ProjectID"`
 	Likes       []User                      `gorm:"many2many:project_likes;"`
 }

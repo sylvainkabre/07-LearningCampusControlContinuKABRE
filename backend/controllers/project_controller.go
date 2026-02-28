@@ -14,6 +14,13 @@ import (
 	"gorm.io/gorm"
 )
 
+// GetProjects godoc
+// @Description Récupère une liste de tous les projets disponibles, y compris leurs commentaires et likes associés.
+// @Tags Projects
+// @Produce json
+// @Success 200 {array} models.Project
+// @Security BearerAuth
+// @Router /projects [get]
 func GetProjects(c *gin.Context) {
 
 	var projects []models.Project
@@ -26,6 +33,13 @@ func GetProjects(c *gin.Context) {
 	c.JSON(http.StatusOK, projects)
 }
 
+// GetSpecificProject godoc
+// @Description Récupère un projet spécifique par son ID, y compris ses commentaires et likes associés.
+// @Tags Projects
+// @Produce json
+// @Success 200 {object} models.Project
+// @Security BearerAuth
+// @Router /projects/{id} [get]
 func GetSpecificProject(c *gin.Context) {
 	var project models.Project
 
@@ -48,6 +62,13 @@ func GetSpecificProject(c *gin.Context) {
 
 }
 
+// PostProject godoc
+// @Description Crée un nouveau projet avec les données fournies.
+// @Tags Projects
+// @Produce json
+// @Success 201 {object} models.Project
+// @Security BearerAuth
+// @Router /projects [post]
 func PostProject(c *gin.Context) {
 	var project models.Project
 
@@ -79,9 +100,16 @@ func PostProject(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, project)
+	c.JSON(http.StatusCreated, project)
 }
 
+// PutProject godoc
+// @Description Met à jour un projet existant avec les données fournies.
+// @Tags Projects
+// @Produce json
+// @Success 200 {object} models.Project
+// @Security BearerAuth
+// @Router /projects/{id} [put]
 func PutProject(c *gin.Context) {
 	var project models.Project
 
@@ -96,12 +124,6 @@ func PutProject(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Projet non trouvé"})
 		return
 	}
-
-	// var input map[string]interface{}
-	// if err := c.ShouldBindJSON(&input); err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Le format de la donnée est invalide"})
-	// 	return
-	// }
 
 	var input models.ProjectUpdateInput
 	if err := c.ShouldBind(&input); err != nil {
@@ -157,6 +179,13 @@ func PutProject(c *gin.Context) {
 	c.JSON(http.StatusOK, project)
 }
 
+// DeleteProject godoc
+// @Description Supprime un projet existant.
+// @Tags Projects
+// @Produce json
+// @Success 200 {object} models.Project
+// @Security BearerAuth
+// @Router /projects/{id} [delete]
 func DeleteProject(c *gin.Context) {
 	var project models.Project
 
@@ -180,6 +209,13 @@ func DeleteProject(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Le projet a été supprimé avec succès"})
 }
 
+// LikeProject godoc
+// @Description Ajoute ou retire un like à un projet spécifique.
+// @Tags Projects
+// @Produce json
+// @Success 200 {object} models.Project
+// @Security BearerAuth
+// @Router /projects/{id}/like [post]
 func LikeProject(c *gin.Context) {
 	// 1. Parse project ID
 	projectID, err := strconv.Atoi(c.Param("id"))

@@ -4,6 +4,8 @@ import (
 	"LearningCampusControlContinu/config"
 	"LearningCampusControlContinu/controllers"
 	"LearningCampusControlContinu/models"
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,7 +16,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func setuptestDB() *gorm.DB {
+func SetuptestDB() *gorm.DB {
 
 	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	db.AutoMigrate(&models.Project{}, &models.User{}, &models.Comment{})
@@ -31,7 +33,7 @@ func setuptestDB() *gorm.DB {
 func TestGetProjects(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	config.DB = setuptestDB()
+	config.DB = SetuptestDB()
 
 	router := gin.Default()
 	router.GET("/projects", controllers.GetProjects)
@@ -45,4 +47,35 @@ func TestGetProjects(t *testing.T) {
 	body := resp.Body.String()
 	assert.Contains(t, body, "Test Project")
 	assert.Contains(t, body, "Test projet pour les tests")
+}
+
+func TestPostProject(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	config.DB = SetuptestDB()
+
+	router := gin.Default()
+	router.POST("/projects", controllers.PostProject)
+
+	project := map[string]interface{}{
+		"name":        "Nouveau Test Projet",
+		"description": "Nouvelle description projet pour les tests",
+		"skills":      []string{"Go", "Testing", "SQLite"},
+	}
+
+	data, _ := json.Marshal(project)
+
+	req, _ := http.NewRequest(http.MethodPost, "/projects", bytes.NewBuffer(data))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+
+	router.ServeHTTP(resp, req)
+
+	assert.Equal(t, http.StatusCreated, resp.Code)
+
+	assert.Contains(t, resp.Body.String(), "Nouveau Test Projet")
+	assert.Contains(t, resp.Body.String(), "Nouvelle description projet pour les tests")
+	assert.Contains(t, resp.Body.String(), "Go")
+	assert.Contains(t, resp.Body.String(), "Testing")
+	assert.Contains(t, resp.Body.String(), "SQLite")
 }

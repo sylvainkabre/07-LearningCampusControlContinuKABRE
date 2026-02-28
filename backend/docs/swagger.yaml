@@ -1,0 +1,167 @@
+definitions:
+  models.Comment:
+    properties:
+      content:
+        type: string
+      createAt:
+        type: string
+      id:
+        type: integer
+      project_id:
+        type: integer
+      updatedAt:
+        type: string
+      userID:
+        type: integer
+    type: object
+  models.Project:
+    properties:
+      comments:
+        items:
+          $ref: '#/definitions/models.Comment'
+        type: array
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      image:
+        type: string
+      likes:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+      name:
+        type: string
+      skills:
+        items:
+          type: string
+        type: array
+      updatedAt:
+        type: string
+    required:
+    - description
+    - name
+    type: object
+  models.User:
+    properties:
+      comments:
+        items:
+          $ref: '#/definitions/models.Comment'
+        type: array
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      likedProjects:
+        items:
+          $ref: '#/definitions/models.Project'
+        type: array
+      password:
+        type: string
+      updatedAt:
+        type: string
+    required:
+    - email
+    type: object
+info:
+  contact: {}
+  description: API pour la gestion des projets, utilisateurs et commentaires du Learning
+    Campus Control Continu.
+  title: Learning Campus Control Continu API
+  version: "1.0"
+paths:
+  /projects:
+    get:
+      description: Récupère une liste de tous les projets disponibles, y compris leurs
+        commentaires et likes associés.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Project'
+            type: array
+      security:
+      - BearerAuth: []
+      tags:
+      - Projects
+    post:
+      description: Crée un nouveau projet avec les données fournies.
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Project'
+      security:
+      - BearerAuth: []
+      tags:
+      - Projects
+  /projects/{id}:
+    delete:
+      description: Supprime un projet existant.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Project'
+      security:
+      - BearerAuth: []
+      tags:
+      - Projects
+    get:
+      description: Récupère un projet spécifique par son ID, y compris ses commentaires
+        et likes associés.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Project'
+      security:
+      - BearerAuth: []
+      tags:
+      - Projects
+    put:
+      description: Met à jour un projet existant avec les données fournies.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Project'
+      security:
+      - BearerAuth: []
+      tags:
+      - Projects
+  /projects/{id}/like:
+    post:
+      description: Ajoute ou retire un like à un projet spécifique.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Project'
+      security:
+      - BearerAuth: []
+      tags:
+      - Projects
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
